@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ventabob{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="top-banner">
+        <img src="{{ url_for('static', filename='b&r.PNG') }}" alt="Logo de Ventabob">
+    </div>
+    <nav>
+        <a href="{{ url_for('index') }}">Inicio</a>
+        {% if current_user.is_authenticated %}
+            {% if current_user.role == 'admin' %}
+                <a href="{{ url_for('admin.dashboard') }}">Admin</a>
+            {% elif current_user.role == 'seller' %}
+                <a href="{{ url_for('seller.sell') }}">Vender</a>
+                <a href="{{ url_for('seller.products') }}">Productos</a>
+            {% endif %}
+            <a href="{{ url_for('auth.logout') }}">Cerrar Sesión</a>
+        {% else %}
+            <a href="{{ url_for('auth.login') }}">Iniciar Sesión</a>
+            <a href="{{ url_for('auth.register') }}">Registrarse</a>
+        {% endif %}
+        </nav>
+    <div class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+    <footer>
+        </footer>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

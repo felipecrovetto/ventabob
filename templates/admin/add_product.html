@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block title %}Agregar Producto{% endblock %}
+
+{% block content %}
+    <div class="add-product-panel">
+        <h1>Agregar Producto</h1>
+        <div class="button-group">
+            <button id="new-product-btn" class="btn btn-primary">Agregar Producto Nuevo</button>
+            <button id="add-stock-btn" class="btn btn-info">Sumar Stock a Existente</button>
+        </div>
+
+        <div id="new-product-form" class="product-form">
+            <h2>Agregar Producto Nuevo</h2>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.code.label }} {{ form.code(class="form-control") }}
+                    {% for error in form.code.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.name.label }} {{ form.name(class="form-control") }}
+                    {% for error in form.name.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.price.label }} {{ form.price(class="form-control") }}
+                    {% for error in form.price.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.cost.label }} {{ form.cost(class="form-control") }}
+                    {% for error in form.cost.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    {{ form.stock.label }} {{ form.stock(class="form-control") }}
+                    {% for error in form.stock.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {{ form.submit(class="btn btn-primary") }}
+            </form>
+        </div>
+
+        <div id="add-stock-form" class="product-form" style="display: none;">
+            <h2>Sumar Stock a Producto Existente</h2>
+            <form method="POST" action="{{ url_for('admin.add_stock') }}">
+                {{ stock_form.hidden_tag() }}
+                <div class="form-group">
+                    {{ stock_form.existing_product_code.label }} {{ stock_form.existing_product_code(class="form-control", list="existing-products") }}
+                    <datalist id="existing-products">
+                        {% for product in all_products %}
+                            <option value="{{ product.code }}">{{ product.name }}</option>
+                        {% endfor %}
+                    </datalist>
+                    {% for error in stock_form.existing_product_code.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="form-group">
+                    <label for="add_stock_quantity">Agregar Stock</label>
+                    <input type="number" class="form-control" id="add_stock_quantity" name="add_stock_quantity" required min="1">
+                </div>
+                <button type="submit" class="btn btn-info">Agregar Stock</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const newProductBtn = document.getElementById('new-product-btn');
+        const addStockBtn = document.getElementById('add-stock-btn');
+        const newProductForm = document.getElementById('new-product-form');
+        const addStockForm = document.getElementById('add-stock-form');
+
+        newProductBtn.addEventListener('click', () => {
+            newProductForm.style.display = 'block';
+            addStockForm.style.display = 'none';
+        });
+
+        addStockBtn.addEventListener('click', () => {
+            newProductForm.style.display = 'none';
+            addStockForm.style.display = 'block';
+        });
+    </script>
+{% endblock %}

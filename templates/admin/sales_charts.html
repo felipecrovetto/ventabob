@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% block title %}Gráficos de Ventas{% endblock %}
+
+{% block content %}
+    <div class="sales-charts-panel">
+        <h1>Gráficos de Ventas</h1>
+
+        <div style="margin-bottom: 20px;">
+            <h2>Ventas por Tiempo (Filtrar por Año y Mes)</h2>
+            <canvas id="salesByTimeChart" style="width:100%; max-width:600px; height:300px;"></canvas>
+            <label for="year">Año:</label>
+            <select id="year" onchange="updateSalesByTimeChart()">
+                <option value="">Todos</option>
+                {% for year in years %}
+                    <option value="{{ year }}">{{ year }}</option>
+                {% endfor %}
+            </select>
+            <label for="month">Mes:</label>
+            <select id="month" onchange="updateSalesByTimeChart()">
+                <option value="">Todos</option>
+                <option value="1">Enero</option>
+                <option value="2">Febrero</option>
+                <option value="3">Marzo</option>
+                <option value="4">Abril</option>
+                <option value="5">Mayo</option>
+                <option value="6">Junio</option>
+                <option value="7">Julio</option>
+                <option value="8">Agosto</option>
+                <option value="9">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+            </select>
+            <button onclick="updateSalesByTimeChart()">Filtrar</button>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <h2>Inventario por Producto</h2>
+            <canvas id="inventoryChart" style="width:100%; max-width:400px; height:300px;"></canvas>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+            <h2>Cantidad Vendida por Producto</h2>
+            <canvas id="productsSoldChart" style="width:100%; max-width:400px; height:400px;"></canvas>
+        </div>
+
+        <div>
+            <h2>Utilidad por Producto</h2>
+            <canvas id="profitByProductChart" style="width:100%; max-width:400px; height:400px;"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const salesDataTimeJsonRaw = '{{ sales_data_time|tojson }}';
+            const inventoryDataJsonRaw = '{{ inventory_data|tojson }}';
+            const labelsSoldJsonRaw = '{{ labels_sold|tojson }}';
+            const dataSoldJsonRaw = '{{ data_sold|tojson }}';
+            const labelsProfitJsonRaw = '{{ labels_profit|tojson }}';
+            const dataProfitJsonRaw = '{{ data_profit|tojson }}';
+            const allYearsJsonRaw = '{{ years|tojson }}';
+
+            console.log('JSON sales_data_time (raw):', salesDataTimeJsonRaw);
+            console.log('JSON inventory_data (raw):', inventoryDataJsonRaw);
+            console.log('JSON labels_sold (raw):', labelsSoldJsonRaw);
+            console.log('JSON data_sold (raw):', dataSoldJsonRaw);
+            console.log('JSON labels_profit (raw):', labelsProfitJsonRaw);
+            console.log('JSON data_profit (raw):', dataProfitJsonRaw);
+            console.log('JSON allYears (raw):', allYearsJsonRaw);
+
+            // Eliminar las comillas dobles extra al principio y al final
+            const salesDataTimeJson = salesDataTimeJsonRaw.substring(1, salesDataTimeJsonRaw.length - 1);
+            const inventoryDataJson = inventoryDataJsonRaw.substring(1, inventoryDataJsonRaw.length - 1);
+            const labelsSoldJson = labelsSoldJsonRaw.substring(1, labelsSoldJsonRaw.length - 1);
+            const dataSoldJson = dataSoldJsonRaw.substring(1, dataSoldJsonRaw.length - 1);
+            const labelsProfitJson = labelsProfitJsonRaw.substring(1, labelsProfitJsonRaw.length - 1);
+            const dataProfitJson = dataProfitJsonRaw.substring(1, dataProfitJsonRaw.length - 1);
+            const allYearsJson = allYearsJsonRaw.substring(1, allYearsJsonRaw.length - 1);
+
+            let salesDataTime;
+            let inventoryData;
+            let labelsSold;
+            let dataSold;
+            let labelsProfit;
+            let dataProfit;
+            let allYears;
+
+            try {
+                salesDataTime = JSON.parse(salesDataTimeJson);
+                inventoryData = JSON.parse(inventoryDataJson);
+                labelsSold = JSON.parse(labelsSoldJson);
+                dataSold = JSON.parse(dataSoldJson);
+                labelsProfit = JSON.parse(labelsProfitJson);
+                dataProfit = JSON.parse(dataProfitJson);
+                allYears = JSON.parse(allYearsJson);
+            } catch (error) {
+                console.error('Error al parsear JSON:', error);
+                console.error('Cadena sales_data_time (cleaned):', salesDataTimeJson);
+                console.error('Cadena inventory_data (cleaned):', inventoryDataJson);
+                console.error('Cadena labels_sold (cleaned):', labelsSoldJson);
+                console.error('Cadena data_sold (cleaned):', dataSoldJson);
+                console.error('Cadena labels_profit (cleaned):', labelsProfitJson);
+                console.error('Cadena data_profit (cleaned):', dataProfitJson);
+                console.error('Cadena allYears (cleaned):', allYearsJson);
+                return;
+            }
+
+            console.log('Parsed salesDataTime:', salesDataTime);
+            console.log('Parsed inventoryData:', inventoryData);
+            console.log('Parsed labelsSold:', labelsSold);
+            console.log('Parsed dataSold:', dataSold);
+            console.log('Parsed labelsProfit:', labelsProfit);
+            console.log('Parsed dataProfit:', dataProfit);
+            console.log('Parsed allYears:', allYears);
+
+            // Función para inicializar las opciones del año
+            function populateYearOptions() {
+                const yearSelect = document.getElementById('year');
+                allYears.forEach(year => {
+                    const option = document.createElement('option');
+                    option.value = year;
+                    option.textContent = year;
+                    yearSelect.appendChild(option);
+                });
+            }
+            populateYearOptions();
+
+            // Gráfico de Ventas por Tiempo
+            let salesByTimeChart;
+            function updateSalesByTimeChart() {
+                const year = document.getElementById('year').value;
+                const month = document.getElementById('month').value;
+
+                const filteredData = salesDataTime.filter(sale => {
+                    const saleYear = sale.date.substring(0, 4);
+                    const saleMonth = sale.date.substring(5, 7);
+                    const yearMatch = year === "" || saleYear === year;
+                    const monthMatch = month === "" || month === "" || saleMonth === String(parseInt(month)).padStart(2, '0');
+                    return yearMatch && monthMatch;
+                });
+
+                const groupedData = {};
+                filteredData.forEach(sale => {
+                    if (!groupedData[sale.date]) {
+                        groupedData[sale.date] = { quantity: 0, sale_price: 0 };
+                    }
+                    groupedData[sale.date].quantity += sale.quantity;
+                    groupedData[sale.date].sale_price += sale.sale_price;
+                });
+
+                const labels = Object.keys(groupedData).sort();
+                const quantityData = labels.map(date => groupedData[date].quantity);
+                const revenueData = labels.map(date => groupedData[date].sale_price);
+
+                const ctx = document.getElementById('salesByTimeChart').getContext('2d');
+                if (salesByTimeChart) {
+                    salesByTimeChart.destroy();
+                }
+                salesByTimeChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Cantidad Vendida',
+                            data: quantityData,
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            fill: true
+                        }, {
+                            label: 'Ingresos',
+                            data: revenueData,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+            updateSalesByTimeChart(); // Inicializar el gráfico
+
+            // Gráfico de Inventario por Producto
+            const inventoryCtx = document.getElementById('inventoryChart').getContext('2d');
+            const inventoryChart = new Chart(inventoryCtx, {
+                type: 'bar',
+                data: {
+                    labels: inventoryData.map(item => item.name),
+                    datasets: [{
+                        label: 'Stock',
+                        data: inventoryData.map(item => item.stock),
+                        backgroundColor: 'rgba(75, 192, 192, 0.8)',
+                        borderColor:  'rgba(75, 192, 192, 1)',
+                        borderWidth: 1,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Pastel de Cantidad Vendida por Producto
+            const productsSoldCtx = document.getElementById('productsSoldChart').getContext('2d');
+            const productsSoldChart = new Chart(productsSoldCtx, {
+                type: 'pie',
+                data: {
+                    labels: labelsSold,
+                    datasets: [{
+                        data: dataSold,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += parseInt(context.parsed).toFixed(0);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Gráfico de Pastel de Utilidad por Producto
+            const profitByProductCtx = document.getElementById('profitByProductChart').getContext('2d');
+            const profitByProductChart = new Chart(profitByProductCtx, {
+                type: 'pie',
+                data: {
+                    labels: labelsProfit,
+                    datasets: [{
+                        data: dataProfit,
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.8)',
+                            'rgba(54, 162, 235, 0.8)',
+                            'rgba(255, 206, 86, 0.8)',
+                            'rgba(75, 192, 192, 0.8)',
+                            'rgba(153, 102, 255, 0.8)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': $';
+                                    }
+                                    if (context.parsed !== null) {
+                                        label += parseFloat(context.parsed).toFixed(2);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

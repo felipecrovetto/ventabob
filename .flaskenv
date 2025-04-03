@@ -1,0 +1,2 @@
+FLASK_APP=ventabob
+FLASK_DEBUG=1

@@ -1,0 +1,314 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Un estilo de letra predeterminado */
+    background-color: #ffe0e5; /* Rosado pastel */
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.top-banner {
+    background-color: #b0e0e6; /* Verde claro pastel (aguamarina claro) */
+    padding: 20px 0;
+    text-align: center;
+}
+
+.top-banner img {
+    max-width: 300px; /* Ajusta el tamaño máximo de la imagen según necesites */
+    height: auto;
+}
+
+nav {
+    background-color: #ffffcc; /* Amarillo pastel */
+    padding: 10px 20px;
+    border-bottom: 1px solid #eee;
+    text-align: center; /* Centrar las opciones de navegación */
+}
+
+nav a {
+    color: #333;
+    text-decoration: none;
+    margin: 0 15px; /* Ajustar el margen para centrar */
+}
+
+nav a:hover {
+    color: #007bff;
+}
+
+.container {
+    flex-grow: 1;
+    padding: 20px;
+    margin: 20px auto;
+    background-color: #fff; /* Un fondo blanco para el contenido principal */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+    max-width: 960px; /* Ancho máximo del contenido */
+    width: 100%;
+}
+
+.alert {
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.btn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary {
+    background-color: #007bff;
+}
+
+/* Estilo de letra más "sandy" (puedes probar diferentes fuentes) */
+h1, h2, h3, h4, h5, h6, p, a, label, button, input, select, textarea {
+    font-family: 'Segoe UI', cursive; /* Un ejemplo, puedes buscar fuentes más "sandy" en Google Fonts y agregarlas */
+}
+
+.admin-panel {
+    text-align: center;
+    padding: 20px;
+}
+
+.admin-options {
+    margin-top: 20px;
+}
+
+.admin-button {
+    display: inline-block;
+    background-color: #b0e0e6; /* Verde agua */
+    color: #333;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    margin: 10px;
+    border: 1px solid #b0e0e6;
+}
+
+.admin-button:hover {
+    background-color: #8acdd1; /* Un tono ligeramente más oscuro al pasar el ratón */
+    color: #fff;
+}
+
+.homepage-messages {
+    text-align: center;
+    padding: 40px;
+}
+
+.homepage-messages h1 {
+    font-size: 2.5em;
+    margin-bottom: 15px;
+    color: #f08080; /* Rosado pastel para el título */
+}
+
+.homepage-messages p {
+    font-size: 1.5em;
+    color: #add8e6; /* Azul claro pastel para el subtítulo */
+}
+
+.add-product-panel {
+    padding: 20px;
+}
+
+.button-group {
+    margin-bottom: 20px;
+    text-align: center; /* Centrar los botones */
+}
+
+.button-group button {
+    padding: 10px 15px;
+    margin: 0 10px; /* Espacio entre botones */
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    font-size: 1em;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.product-form {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.error-message {
+    display: block;
+    color: red;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
+.add-product-success {
+    text-align: center;
+    padding: 30px;
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin: 20px auto;
+    max-width: 600px;
+}
+
+.add-product-success h1 {
+    color: #28a745; /* Verde de éxito */
+    margin-bottom: 20px;
+}
+
+.add-product-success p {
+    font-size: 1.1em;
+    margin-bottom: 30px;
+}
+
+.product-list-panel {
+    padding: 20px;
+}
+
+.product-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+}
+
+.product-table th, .product-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.product-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.product-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.product-table .actions {
+    text-align: right;
+}
+
+.btn-sm {
+    padding: 5px 10px;
+    font-size: 0.8em;
+    margin-left: 5px;
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.btn-danger:hover {
+    background-color: #c82333;
+}
+
+.download-table-btn {
+    background-color: #b0e0e6; /* Verde pastel */
+    color: #333;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    margin-top: 20px;
+    display: inline-block;
+}
+
+.download-table-btn:hover {
+    background-color: #8acdd1;
+    color: #fff;
+}
+
+.sell-panel {
+    padding: 20px;
+}
+
+.sale-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    border: 1px solid #ddd;
+    background-color: #fff;
+}
+
+.sale-table th, .sale-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.sale-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.sale-table tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.sale-table tfoot td {
+    font-weight: bold;
+}
+
+.sell-panel h2 {
+    margin-top: 30px;
+}
+
+#add-to-sale-form button {
+    margin-top: 10px;
+}

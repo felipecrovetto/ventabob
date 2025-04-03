@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Realizar Venta{% endblock %}
+
+{% block content %}
+    <div class="sell-panel">
+        <h1>Realizar Venta</h1>
+        <form id="add-to-sale-form">
+            <div class="form-group">
+                <label for="product_name">Buscar Producto por Nombre</label>
+                <input type="text" class="form-control" id="product_name" name="product_name" required>
+                <div id="product-suggestions" class="list-group">
+                    </div>
+            </div>
+            <div class="form-group">
+                <label for="quantity">Cantidad</label>
+                <input type="number" class="form-control" id="quantity" name="quantity" value="1" min="1" required>
+            </div>
+            <button type="button" class="btn btn-success" id="add-product-to-sale">Agregar a la Venta</button>
+        </form>
+
+        <h2>Productos en Venta</h2>
+        <table class="sale-table">
+            <thead>
+                <tr>
+                    <th>Nombre del Producto</th>
+                    <th>Precio Unitario</th>
+                    <th>Cantidad</th>
+                    <th>Subtotal</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="sale-items">
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
+                    <td id="total-sale-amount">0.00</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <h2>Finalizar Venta</h2>
+        <form method="POST" action="{{ url_for('seller.sell') }}">
+            <input type="hidden" name="sale_data" id="sale-data-input">
+            <div class="form-group">
+                <label for="payment_method">Método de Pago</label>
+                <select class="form-control" id="payment_method" name="payment_method" required>
+                    <option value="cash">Efectivo</option>
+                    <option value="card">Tarjeta</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Finalizar Venta</button>
+        </form>
+    </div>
+
+    <script>
+        const productInput = document.getElementById('product_name');
+        const quantityInput = document.getElementById('quantity');
+        const addProductToSaleBtn = document.getElementById('add-product-to-sale');
+        const saleItemsTable = document.getElementById('sale-items');
+        const totalAmountDisplay = document.getElementById('total-sale-amount');
+        const saleDataInput = document.getElementById('sale-data-input');
+        const productSuggestions = document.getElementById('product-suggestions');
+        let saleDetails = [];
+        let selectedProductId = null;
+        let selectedProductPrice = 0;
+
+        productInput.addEventListener('input', function() {
+            const query = this.value;
+            if (query.length >= 2) {
+                fetch(`/seller/search_products?query=${query}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        productSuggestions.innerHTML = '';
+                        if (data.length > 0) {
+                            data.forEach(product => {
+                                const suggestion = document.createElement('a');
+                                suggestion.href = '#';
+                                suggestion.classList.add('list-group-item', 'list-group-item-action');
+                                suggestion.textContent = product.name;
+                                suggestion.dataset.productId = product.id;
+                                suggestion.dataset.productPrice = product.price;
+                                suggestion.addEventListener('click', function(e) {
+                                    e.preventDefault();
+                                    productInput.value = this.textContent;
+                                    selectedProductId = this.dataset.productId;
+                                    selectedProductPrice = parseFloat(this.dataset.productPrice);
+                                    productSuggestions.innerHTML = ''; // Clear suggestions
+                                });
+                                productSuggestions.appendChild(suggestion);
+                            });
+                        } else {
+                            const noResults = document.createElement('span');
+                            noResults.classList.add('list-group-item');
+                            noResults.textContent = 'No se encontraron productos.';
+                            productSuggestions.appendChild(noResults);
+                        }
+                    });
+            } else {
+                productSuggestions.innerHTML = '';
+                selectedProductId = null;
+                selectedProductPrice = 0;
+            }
+        });
+
+        addProductToSaleBtn.addEventListener('click', () => {
+            const productName = productInput.value;
+            const quantity = parseInt(quantityInput.value);
+
+            if (selectedProductId) {
+                if (isNaN(selectedProductPrice)) {
+                    alert('El precio del producto no es válido.');
+                    return;
+                }
+                const subtotal = selectedProductPrice * quantity;
+                const existingItemIndex = saleDetails.findIndex(item => item.id === selectedProductId);
+
+                if (existingItemIndex !== -1) {
+                    saleDetails[existingItemIndex].quantity += quantity;
+                    saleDetails[existingItemIndex].subtotal += subtotal;
+                } else {
+                    saleDetails.push({ id: selectedProductId, name: productName, price: selectedProductPrice, quantity: quantity, subtotal: subtotal });
+                }
+
+                renderSaleItems();
+                productInput.value = '';
+                quantityInput.value = 1;
+                selectedProductId = null;
+                selectedProductPrice = 0;
+                productSuggestions.innerHTML = '';
+            } else {
+                alert('Por favor, busca y selecciona un producto de la lista.');
+            }
+        });
+
+        function renderSaleItems() {
+            saleItemsTable.innerHTML = '';
+            let total = 0;
+            saleDetails.forEach((item, index) => {
+                const row = saleItemsTable.insertRow();
+                const nameCell = row.insertCell();
+                const priceCell = row.insertCell();
+                const quantityCell = row.insertCell();
+                const subtotalCell = row.insertCell();
+                const actionsCell = row.insertCell();
+
+                nameCell.textContent = item.name;
+                priceCell.textContent = item.price.toFixed(2);
+                quantityCell.textContent = item.quantity;
+                subtotalCell.textContent = item.subtotal.toFixed(2);
+                total += item.subtotal;
+
+                const removeButton = document.createElement('button');
+                removeButton.textContent = 'Eliminar';
+                removeButton.classList.add('btn', 'btn-danger', 'btn-sm');
+                removeButton.addEventListener('click', () => {
+                    saleDetails.splice(index, 1);
+                    renderSaleItems();
+                });
+                actionsCell.appendChild(removeButton);
+            });
+            totalAmountDisplay.textContent = total.toFixed(2);
+            saleDataInput.value = JSON.stringify(saleDetails);
+        }
+    </script>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista de Productos{% endblock %}
+
+{% block content %}
+    <div class="product-list-panel">
+        <h1>Lista de Productos</h1>
+
+        <div style="margin-bottom: 20px;">
+            <h2>Stock de Productos</h2>
+            <canvas id="stockChart" style="width:100%; max-width:600px; height:300px;"></canvas>
+        </div>
+
+        {% if products %}
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Costo</th>
+                        <th>Stock</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td>{{ product.code }}</td>
+                            <td>{{ product.name }}</td>
+                            <td>{{ product.price }}</td>
+                            <td>{{ product.cost }}</td>
+                            <td>{{ product.stock }}</td>
+                            <td class="actions">
+                                <a href="{{ url_for('admin.edit_product', product_id=product.id) }}" class="btn btn-sm btn-primary">Editar</a>
+                                <a href="{{ url_for('admin.delete_product', product_id=product.id) }}" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este producto?')">Eliminar</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button class="btn btn-success download-table-btn" onclick="window.location='{{ url_for('admin.download_products') }}'">Descargar la Tabla</button>
+        {% else %}
+            <p>No hay productos agregados aún.</p>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const productNamesJson = '{{ product_names_json|tojson }}';
+            const productStocksJson = '{{ product_stocks_json|tojson }}';
+
+            console.log('JSON Nombres de los productos (raw):', productNamesJson);
+            console.log('JSON Cantidades en stock (raw):', productStocksJson);
+
+            // Eliminar las comillas dobles extra al principio y al final
+            const cleanedProductNamesJson = productNamesJson.substring(1, productNamesJson.length - 1);
+            const cleanedProductStocksJson = productStocksJson.substring(1, productStocksJson.length - 1);
+
+            let productNames;
+            let productStocks;
+
+            try {
+                productNames = JSON.parse(cleanedProductNamesJson);
+                productStocks = JSON.parse(cleanedProductStocksJson);
+            } catch (error) {
+                console.error('Error al parsear JSON (cleaned):', error);
+                console.error('Cadena de nombres (cleaned):', cleanedProductNamesJson);
+                console.error('Cadena de stocks (cleaned):', cleanedProductStocksJson);
+                return;
+            }
+
+            console.log('Parsed productNames:', productNames);
+            console.log('Parsed productStocks:', productStocks);
+
+            const thresholdLine = 20;
+
+            const ctx = document.getElementById('stockChart').getContext('2d');
+            const stockChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: productNames,
+                    datasets: [{
+                        label: 'Cantidad en Stock',
+                        data: productStocks,
+                        backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        type: 'line',
+                        label: 'Umbral (20 unidades)',
+                        data: Array(productNames.length).fill(thresholdLine),
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        fill: false,
+                        pointRadius: 0,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Cantidad en Stock'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Nombre del Producto'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

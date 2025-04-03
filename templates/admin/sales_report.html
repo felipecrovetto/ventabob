@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporte de Ventas{% endblock %}
+
+{% block content %}
+    <div class="sales-report-panel">
+        <h1>Reporte de Ventas</h1>
+
+        <h2>Ventas Totales por Mes</h2>
+        <canvas id="monthlySalesChart" width="400" height="200"></canvas>
+
+        <h2>Listado de Ventas</h2>
+        {% if sales %}
+            <table class="product-table">
+                <thead>
+                    <tr>
+                        <th>Fecha de Venta</th>
+                        <th>Código de Producto</th>
+                        <th>Nombre del Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio de Venta</th>
+                        <th>Costo</th>
+                        <th>Método de Pago</th>
+                        <th>ID de Venta</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sale in sales %}
+                        <tr>
+                            <td>{{ sale.sale_date }}</td>
+                            <td>{{ sale.product_code }}</td>
+                            <td>{{ sale.product_name }}</td>
+                            <td>{{ sale.quantity }}</td>
+                            <td>{{ sale.sale_price }}</td>
+                            <td>{{ sale.cost }}</td>
+                            <td>{{ sale.payment_method }}</td>
+                            <td>{{ sale.sale_id }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button class="btn btn-success download-table-btn" onclick="window.location='{{ url_for('admin.download_sales_report') }}'">Descargar Reporte de Ventas (Excel)</button>
+        {% else %}
+            <p>No hay ventas registradas.</p>
+        {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const monthlySalesData = {{ monthly_sales|tojson }};
+        const labels = monthlySalesData.map(item => `${item.year}-${item.month.toString().padStart(2, '0')}`);
+        const data = monthlySalesData.map(item => item.total_sales);
+
+        const ctx = document.getElementById('monthlySalesChart').getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Ventas Totales por Mes',
+                    data: data,
+                    backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+{% endblock %}
